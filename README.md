@@ -38,6 +38,16 @@ docker build \
   "github.com/sbt/docker-sbt.git#:eclipse-temurin"
 ```
 
+For the Java 8 / Scala 2.11.8 / sbt 1.9.9 image, build with:
+```
+docker build \
+  --build-arg BASE_IMAGE_TAG="8u482-b08-jdk" \
+  --build-arg SBT_VERSION="1.9.9" \
+  --build-arg SCALA_VERSION="2.11.8" \
+  -t sbtscala/scala-sbt:eclipse-temurin-8u482_1.9.9_2.11.8 \
+  "github.com/sbt/docker-sbt.git#:eclipse-temurin"
+```
+
 ## Usage ##
 
 ```

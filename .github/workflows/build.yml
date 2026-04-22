@@ -167,3 +167,57 @@ jobs:
           SCALA_VERSION=${{ matrix.scalaVersion }}
         platforms: ${{ matrix.platforms }}
         push: true
+
+  build-java8-2118:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v4.0.0
+    - name: Set up Docker Buildx
+      id: buildx
+      uses: docker/setup-buildx-action@v4.0.0
+    - name: Available platforms
+      run: echo ${{ steps.buildx.outputs.platforms }}
+    - name: Create docker tag
+      id: create_docker_tag
+      run: |
+        TAG=sbtscala/scala-sbt:eclipse-temurin-8u482_1.9.9_2.11.8
+        echo "TAG=$TAG" >> $GITHUB_OUTPUT
+    - name: Build docker image
+      uses: docker/build-push-action@v7
+      with:
+        context: eclipse-temurin
+        no-cache: true
+        tags: ${{ steps.create_docker_tag.outputs.TAG }}
+        file: eclipse-temurin/Dockerfile
+        build-args: |
+          BASE_IMAGE_TAG=8u482-b08-jdk
+          SBT_VERSION=1.9.9
+          SCALA_VERSION=2.11.8
+        load: true
+    - name: Test docker image as root (default)
+      run: |
+        docker run "${{ steps.create_docker_tag.outputs.TAG }}" /bin/bash -c "scala -version && sbt --script-version"
+    - name: Test docker image scala as sbtuser
+      run: |
+        docker run -u sbtuser -w /home/sbtuser "${{ steps.create_docker_tag.outputs.TAG }}" /bin/bash -c "scala -version && sbt --script-version"
+    - name: Log in to DockerHub
+      if: github.event_name != 'pull_request' && github.actor != 'dependabot[bot]'
+      uses: docker/login-action@v4
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Rebuild and push java8 docker image
+      if: github.event_name != 'pull_request' && github.actor != 'dependabot[bot]'
+      uses: docker/build-push-action@v7
+      with:
+        context: eclipse-temurin
+        file: eclipse-temurin/Dockerfile
+        tags: ${{ steps.create_docker_tag.outputs.TAG }}
+        build-args: |
+          BASE_IMAGE_TAG=8u482-b08-jdk
+          SBT_VERSION=1.9.9
+          SCALA_VERSION=2.11.8
+        platforms: linux/amd64,linux/arm64
+        push: true
