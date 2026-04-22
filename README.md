@@ -48,6 +48,11 @@ docker build \
   "github.com/sbt/docker-sbt.git#:eclipse-temurin"
 ```
 
+The GitHub Actions publish target is:
+```
+ghcr.io/yifei0727/sbt_scala_java:8u482_2.11.8_1.9.9
+```
+
 ## Usage ##
 
 ```
